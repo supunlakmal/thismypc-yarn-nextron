@@ -1,6 +1,7 @@
 import { useState } from "react";
 import axios from "axios";
 import { useRouter } from "next/router";
+import { io } from "socket.io-client";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("123@example.com");
@@ -13,7 +14,6 @@ export default function LoginPage() {
     setErrorMessage("");
 
     try {
-      // Replace `localhost:3000` with your actual API endpoint
       const response = await axios.post(
         "http://localhost:3000/api/login",
         {
@@ -28,8 +28,16 @@ export default function LoginPage() {
       );
 
       if (response.data && response.data.name === "Login successful") {
-        // Store JWT token or user data here if needed
-        localStorage.setItem("jwt_token", response.data.token);
+        // Store JWT token and user ID here
+        localStorage.setItem("jwt", response.data.token);
+        localStorage.setItem("userId", response.data.userId);
+
+        const socket = io("http://localhost:3001");
+        console.log(socket);
+
+        socket.emit("user login", response.data.userId);
+
+        // router.push("/");
       } else {
         setErrorMessage("Unexpected response from server");
       }
@@ -41,7 +49,6 @@ export default function LoginPage() {
       }
     }
   };
-
   return (
     <div>
       <h1>Login</h1>
